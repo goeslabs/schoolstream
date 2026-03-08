@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>SchoolStream</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;0,9..144,900;1,9..144,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header>
+  <div class="logo">School<span>Stream</span></div>
+  <div class="header-right">
+    <button class="icon-btn" onclick="openSubscribeModal()">📅</button>
+    <button class="icon-btn amber" onclick="openAddModal()">+</button>
+  </div>
+</header>
+
+<!-- ── APP BODY ── -->
+<div class="app-body">
+
+  <!-- SIDEBAR (desktop only) -->
+  <aside class="sidebar" style="display:none;">
+    <div class="sidebar-section">
+      <h3>Year Group</h3>
+      <div class="year-filter-list" id="sidebarYearList"></div>
+    </div>
+    <div class="sidebar-section">
+      <h3>Upcoming</h3>
+      <div id="upcomingList"></div>
+    </div>
+  </aside>
+
+  <!-- MAIN COLUMN -->
+  <div class="main-col">
+
+    <!-- Mobile filter chips -->
+    <div class="filter-bar" id="filterBar"></div>
+
+    <!-- View switcher + search -->
+    <div class="toolbar">
+      <div class="view-tabs">
+        <button class="view-tab active" onclick="setView('month', this)">Month</button>
+        <button class="view-tab" onclick="setView('list', this)">List</button>
+      </div>
+      <div class="search-box">
+        <span style="color:var(--muted);font-size:0.8rem;">🔍</span>
+        <input type="text" placeholder="Search events…" oninput="handleSearch(this.value)">
+      </div>
+    </div>
+
+    <!-- Month calendar -->
+    <div class="calendar-container" id="monthView">
+      <div class="cal-nav">
+        <h2 id="monthLabel"></h2>
+        <div class="cal-nav-btns">
+          <button class="nav-btn" onclick="prevMonth()">‹</button>
+          <button class="today-btn" onclick="goToday()">Today</button>
+          <button class="nav-btn" onclick="nextMonth()">›</button>
+        </div>
+      </div>
+      <div class="month-grid">
+        <div class="month-header">
+          <div class="month-header-day">Su</div>
+          <div class="month-header-day">Mo</div>
+          <div class="month-header-day">Tu</div>
+          <div class="month-header-day">We</div>
+          <div class="month-header-day">Th</div>
+          <div class="month-header-day">Fr</div>
+          <div class="month-header-day">Sa</div>
+        </div>
+        <div class="month-body" id="monthBody"></div>
+      </div>
+    </div>
+
+    <!-- List view -->
+    <div class="list-view" id="listView" style="display:none;">
+      <div class="events-list" id="eventsList"></div>
+    </div>
+
+  </div><!-- end .main-col -->
+</div><!-- end .app-body -->
+
+<!-- ── BOTTOM NAV (mobile) ── -->
+<nav class="bottom-nav">
+  <button class="bottom-nav-item active" id="navMonth" onclick="setView('month', null, 'navMonth')">
+    <span class="nav-icon">📅</span><span>Calendar</span>
+  </button>
+  <button class="bottom-nav-item add-btn" onclick="openAddModal()">
+    <span class="nav-icon">＋</span><span>Add Event</span>
+  </button>
+  <button class="bottom-nav-item" id="navList" onclick="setView('list', null, 'navList')">
+    <span class="nav-icon">📋</span><span>Events</span>
+  </button>
+</nav>
+
+<!-- ── MODALS ── -->
+
+<!-- Add choice -->
+<div class="modal-overlay" id="addModal" onclick="closeIfBackdrop(event, 'addModal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h2>Add Event</h2>
+      <button class="modal-close" onclick="closeModal('addModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:0.85rem;color:var(--muted);margin-bottom:1rem;line-height:1.5;">How would you like to add an event?</p>
+      <div style="display:flex;flex-direction:column;gap:0.6rem;">
+        <button class="add-choice-btn" onclick="closeModal('addModal'); openManualModal()">
+          <span class="add-choice-icon">✏️</span>
+          <div>
+            <div class="add-choice-title">Add Manually</div>
+            <div class="add-choice-desc">Fill in the event details yourself</div>
+          </div>
+          <span class="add-choice-arrow">›</span>
+        </button>
+        <button class="add-choice-btn" onclick="closeModal('addModal'); openParseModal()">
+          <span class="add-choice-icon">✨</span>
+          <div>
+            <div class="add-choice-title">Extract from Email</div>
+            <div class="add-choice-desc">Paste an email and AI pulls out the events</div>
+          </div>
+          <span class="add-choice-arrow">›</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Manual event form -->
+<div class="modal-overlay" id="manualModal" onclick="closeIfBackdrop(event, 'manualModal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h2>Add Event Manually</h2>
+      <button class="modal-close" onclick="closeModal('manualModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field-row">
+        <div class="field-label">Event Title *</div>
+        <input class="field-input" id="man_title" type="text" placeholder="e.g. Sports Day">
+      </div>
+      <div class="field-row-grid">
+        <div class="field-row">
+          <div class="field-label">Date *</div>
+          <input class="field-input" id="man_date" type="date">
+        </div>
+        <div class="field-row">
+          <div class="field-label">Time</div>
+          <input class="field-input" id="man_time" type="text" placeholder="e.g. 9:30 AM">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field-label">Year Group</div>
+        <select class="field-input" id="man_year">
+          <option value="all">All Year Groups</option>
+          <option value="reception">Reception</option>
+          <option value="year1">Year 1</option>
+          <option value="year2">Year 2</option>
+          <option value="year3">Year 3</option>
+          <option value="year4">Year 4</option>
+          <option value="year5">Year 5</option>
+          <option value="year6">Year 6</option>
+        </select>
+      </div>
+      <div class="field-row">
+        <div class="field-label">Notes</div>
+        <textarea class="field-input" id="man_notes" placeholder="Any important details, reminders or requirements…" style="min-height:90px;resize:vertical;"></textarea>
+      </div>
+      <div id="manualError" class="error-msg" style="display:none;"></div>
+      <button class="btn btn-primary btn-block" onclick="saveManualEvent()">Save Event</button>
+    </div>
+  </div>
+</div>
+
+<!-- Event detail -->
+<div class="modal-overlay" id="eventModal" onclick="closeIfBackdrop(event, 'eventModal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h2 id="eventModalTitle"></h2>
+      <button class="modal-close" onclick="closeModal('eventModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-meta" id="eventModalMeta"></div>
+      <div class="notes-label">📝 Notes</div>
+      <div class="notes-box" id="eventModalNotes"></div>
+      <div style="margin-top:0.875rem;">
+        <button class="btn btn-danger btn-block" onclick="deleteCurrentEvent()">Delete Event</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Extract from email -->
+<div class="modal-overlay" id="parseModal" onclick="closeIfBackdrop(event, 'parseModal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h2>Extract Events from Email</h2>
+      <button class="modal-close" onclick="closeModal('parseModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field-row">
+        <div class="field-label">Paste school email below</div>
+        <textarea class="email-textarea" id="emailText" placeholder="Paste the full email here — dates, times, year groups and notes will be extracted automatically…"></textarea>
+      </div>
+      <button class="btn btn-primary btn-block" onclick="parseEmail()">✨ Extract Events with AI</button>
+      <div id="parseOutput"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Subscribe -->
+<div class="modal-overlay" id="subscribeModal" onclick="closeIfBackdrop(event, 'subscribeModal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h2>Subscribe to Calendar</h2>
+      <button class="modal-close" onclick="closeModal('subscribeModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="subscribe-info">
+        <strong>📅 How it works:</strong><br>
+        Parents subscribe to a calendar feed filtered to their child's year group. Events automatically appear in their phone's calendar app.
+      </div>
+      <div class="field-row">
+        <div class="field-label">Filter by Year Group</div>
+        <select class="field-input" id="subscribeYear" onchange="updateIcalUrl()">
+          <option value="all">All Year Groups</option>
+          <option value="reception">Reception</option>
+          <option value="year1">Year 1</option>
+          <option value="year2">Year 2</option>
+          <option value="year3">Year 3</option>
+          <option value="year4">Year 4</option>
+          <option value="year5">Year 5</option>
+          <option value="year6">Year 6</option>
+        </select>
+      </div>
+      <div class="field-label">Your subscription link</div>
+      <code class="ical-url" id="icalUrl" onclick="copyIcalUrl()">webcal://schoolstream.app/calendar/all.ics</code>
+      <div class="copy-confirm" id="copyConfirm">✅ Copied to clipboard!</div>
+      <div class="app-grid">
+        <button class="app-btn" onclick="fakeOpenApp('Google Calendar')">🗓 Google Calendar</button>
+        <button class="app-btn" onclick="fakeOpenApp('Apple Calendar')">🍎 Apple Calendar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast notification -->
+<div class="toast" id="toast"></div>
+
+<script src="js/app.js"></script>
+</body>
+</html>
