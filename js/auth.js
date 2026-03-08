@@ -20,12 +20,16 @@ function clearMessage(id) {
 async function fetchUserProfile(userId) {
   const { data, error } = await supabaseClient
     .from('profiles')
-    .select('status, role')
+    .select('status, role, year_groups')
     .eq('id', userId)
     .maybeSingle();
 
   if (error) throw error;
   return data;
+}
+
+function hasYearGroups(profile) {
+  return Array.isArray(profile?.year_groups) && profile.year_groups.length > 0;
 }
 
 function switchAuthView(view) {
@@ -82,6 +86,11 @@ async function handleLogin(event) {
 
     if (role === 'admin') {
       window.location.href = 'index.html';
+      return;
+    }
+
+    if (!hasYearGroups(profile)) {
+      window.location.href = 'onboarding.html';
       return;
     }
   } catch (profileError) {
@@ -153,6 +162,15 @@ async function initAuthPage() {
     try {
       const profile = await fetchUserProfile(data.session.user.id);
       const status = (profile?.status || '').toLowerCase();
+      const role = (profile?.role || '').toLowerCase();
+      if (status === 'approved' && role === 'admin') {
+        window.location.href = 'index.html';
+        return;
+      }
+      if (status === 'approved' && !hasYearGroups(profile)) {
+        window.location.href = 'onboarding.html';
+        return;
+      }
       if (status === 'approved') {
         window.location.href = 'index.html';
         return;

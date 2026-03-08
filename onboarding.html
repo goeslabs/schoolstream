@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>SchoolStream | Onboarding</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;0,9..144,900;1,9..144,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="auth-page">
+  <main class="auth-wrap">
+    <section class="auth-card">
+      <div class="auth-brand">School<span>Stream</span></div>
+      <h1>Select Year Groups</h1>
+      <p class="auth-sub">Choose one or more year groups to personalize your calendar feed.</p>
+
+      <form class="auth-form" onsubmit="saveOnboarding(event)">
+        <div class="onboarding-grid">
+          <label class="onboarding-option"><input type="checkbox" value="reception"><span>Reception</span></label>
+          <label class="onboarding-option"><input type="checkbox" value="year1"><span>Year 1</span></label>
+          <label class="onboarding-option"><input type="checkbox" value="year2"><span>Year 2</span></label>
+          <label class="onboarding-option"><input type="checkbox" value="year3"><span>Year 3</span></label>
+          <label class="onboarding-option"><input type="checkbox" value="year4"><span>Year 4</span></label>
+          <label class="onboarding-option"><input type="checkbox" value="year5"><span>Year 5</span></label>
+          <label class="onboarding-option"><input type="checkbox" value="year6"><span>Year 6</span></label>
+        </div>
+        <div id="onboardingMessage" class="auth-message" style="display:none;"></div>
+        <button type="submit" class="btn btn-primary btn-block">Continue to SchoolStream</button>
+      </form>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js?v=2"></script>
+  <script src="js/onboarding.js"></script>
+</body>
+</html>

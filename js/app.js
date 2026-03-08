@@ -93,7 +93,7 @@ async function requireAuthSession() {
 
   const { data: profile, error: profileError } = await supabaseClient
     .from('profiles')
-    .select('status, role')
+    .select('status, role, year_groups')
     .eq('id', userId)
     .maybeSingle();
 
@@ -113,6 +113,8 @@ async function requireAuthSession() {
   }
 
   const status = (profile?.status || '').toLowerCase();
+  const role = (profile?.role || '').toLowerCase();
+  const hasYearGroups = Array.isArray(profile?.year_groups) && profile.year_groups.length > 0;
   if (status === 'pending') {
     await supabaseClient.auth.signOut();
     localStorage.setItem('auth_notice', 'Your account is awaiting approval from the administrator.');
@@ -124,6 +126,11 @@ async function requireAuthSession() {
     await supabaseClient.auth.signOut();
     localStorage.setItem('auth_notice', 'Your account is not approved yet. Contact the administrator.');
     window.location.href = 'auth.html';
+    return false;
+  }
+
+  if (role !== 'admin' && !hasYearGroups) {
+    window.location.href = 'onboarding.html';
     return false;
   }
 

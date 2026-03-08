@@ -620,6 +620,37 @@ select.field-input {
   border: 1px solid #B8D8C0;
 }
 
+.onboarding-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 0.65rem;
+}
+
+.onboarding-option {
+  border: 1px solid var(--border);
+  background: var(--cream);
+  border-radius: 10px;
+  padding: 0.6rem 0.65rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.86rem;
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.onboarding-option input {
+  accent-color: var(--amber-dark);
+}
+
+.onboarding-option.checked {
+  background: var(--amber-light);
+  border-color: var(--amber);
+  color: var(--amber-dark);
+}
+
 /* ── DESKTOP (768px+) ── */
 @media (min-width: 768px) {
   header { padding: 0 2rem; height: 64px; }
