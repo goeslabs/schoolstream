@@ -609,7 +609,7 @@ async function initApp() {
   } catch (error) {
     console.error(error);
     renderAll();
-    showToast('Supabase setup error. Add SUPABASE_URL and SUPABASE_ANON_KEY in index.html.');
+    showToast('Supabase setup error. Add SUPABASE_URL and SUPABASE_ANON_KEY in js/config.js.');
   }
 }
 

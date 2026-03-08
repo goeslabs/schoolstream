@@ -10,7 +10,9 @@ schoolstream/
 ├── css/
 │   └── styles.css    # All styles (mobile-first, responsive)
 ├── js/
-│   └── app.js        # All JavaScript logic
+│   ├── app.js            # All JavaScript logic
+│   ├── config.example.js # Supabase config template (committed)
+│   └── config.js         # Local Supabase config (gitignored)
 └── README.md
 ```
 
@@ -39,17 +41,27 @@ The app now reads/writes events from Supabase.
      created_at timestamp default now()
    );
    ```
-2. In `index.html`, set:
-   - `window.SUPABASE_URL`
-   - `window.SUPABASE_ANON_KEY`
-3. Add a permissive RLS policy for development (or configure auth/policies as needed for production).
+2. Create `js/config.js` (or copy `js/config.example.js`) and set:
+   ```js
+   window.SUPABASE_URL = 'https://YOUR_PROJECT_REF.supabase.co';
+   window.SUPABASE_ANON_KEY = 'YOUR_SUPABASE_PUBLISHABLE_KEY';
+   ```
+3. `js/config.js` is gitignored so keys are not committed.
+4. Add a permissive RLS policy for development (or configure auth/policies as needed for production).
+
+### Deployment note
+
+For Netlify, `netlify.toml` now generates `js/config.js` during deploy from environment variables.
+Set these in Netlify Site Settings -> Environment Variables:
+- `SUPABASE_URL`
+- `SUPABASE_ANON_KEY`
 
 ## Deploying to Netlify (recommended)
 
 1. Push this repo to GitHub
 2. Go to [netlify.com](https://netlify.com) → **Add new site** → **Import from Git**
 3. Select your GitHub repo
-4. Leave build settings blank (no build step needed)
+4. Netlify will use `netlify.toml` build settings automatically
 5. Click **Deploy** — your site will be live in ~30 seconds
 
 Every time you push a change to GitHub, Netlify redeploys automatically.
