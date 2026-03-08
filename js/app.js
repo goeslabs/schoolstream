@@ -30,6 +30,7 @@ let currentEventId = null;
 let events        = [];
 let supabaseClient = null;
 let currentUserProfile = null;
+let currentUserId = null;
 
 // ── SUPABASE ────────────────────────────────────────────────────────────────────
 
@@ -91,6 +92,7 @@ async function requireAuthSession() {
     window.location.href = 'auth.html';
     return false;
   }
+  currentUserId = userId;
 
   const { data: profile, error: profileError } = await supabaseClient
     .from('profiles')
@@ -160,10 +162,12 @@ function applyRoleBasedUi() {
   const addHeaderBtn = document.getElementById('addEventHeaderBtn');
   const addBottomBtn = document.getElementById('addEventBottomBtn');
   const deleteBtn = document.getElementById('deleteEventBtn');
+  const parentSettingsBtn = document.getElementById('parentSettingsBtn');
 
   if (addHeaderBtn) addHeaderBtn.style.display = isParent ? 'none' : '';
   if (addBottomBtn) addBottomBtn.style.display = isParent ? 'none' : '';
   if (deleteBtn) deleteBtn.style.display = isParent ? 'none' : '';
+  if (parentSettingsBtn) parentSettingsBtn.style.display = isParent ? '' : 'none';
 }
 
 function ensureSupabaseReady() {
@@ -676,6 +680,65 @@ function copyIcalUrl() {
 
 function fakeOpenApp(name) {
   showToast(`📅 Opening ${name}…`);
+}
+
+function syncParentSettingsOptionStyles() {
+  document.querySelectorAll('#parentYearGroupGrid .onboarding-option').forEach(label => {
+    const input = label.querySelector('input');
+    label.classList.toggle('checked', !!input?.checked);
+  });
+}
+
+function openParentSettingsModal() {
+  if (!isParentUser()) return;
+
+  const selected = new Set((currentUserProfile?.year_groups || []).map(String));
+  document.querySelectorAll('#parentYearGroupGrid input[type="checkbox"]').forEach(input => {
+    input.checked = selected.has(input.value);
+    input.onchange = syncParentSettingsOptionStyles;
+  });
+  syncParentSettingsOptionStyles();
+
+  const errEl = document.getElementById('parentSettingsError');
+  errEl.style.display = 'none';
+  errEl.textContent = '';
+  document.getElementById('parentSettingsModal').classList.add('open');
+}
+
+async function saveParentSettings() {
+  if (!isParentUser()) return;
+  if (!ensureSupabaseReady()) return;
+  if (!currentUserId) {
+    showToast('Could not determine user account.');
+    return;
+  }
+
+  const selected = Array.from(document.querySelectorAll('#parentYearGroupGrid input[type="checkbox"]:checked')).map(i => i.value);
+  const errEl = document.getElementById('parentSettingsError');
+
+  if (!selected.length) {
+    errEl.textContent = 'Please select at least one year group.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from('profiles')
+    .update({ year_groups: selected })
+    .eq('id', currentUserId);
+
+  if (error) {
+    errEl.textContent = 'Could not save settings. Please try again.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  currentUserProfile = { ...currentUserProfile, year_groups: selected };
+  selectedYears = new Set(['all']);
+  applyRoleBasedUi();
+  closeModal('parentSettingsModal');
+  renderAll();
+  showToast('✅ Preferences updated');
 }
 
 // ── UTILITIES ───────────────────────────────────────────────────────────────────

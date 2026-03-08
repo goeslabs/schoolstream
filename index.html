@@ -14,6 +14,7 @@
   <div class="logo">School<span>Stream</span></div>
   <div class="header-right">
     <button class="icon-btn" onclick="logout()" title="Log out">↩</button>
+    <button class="icon-btn" id="parentSettingsBtn" onclick="openParentSettingsModal()" title="Profile Settings">⚙</button>
     <button class="icon-btn" onclick="openSubscribeModal()">📅</button>
     <button class="icon-btn amber" id="addEventHeaderBtn" onclick="openAddModal()">+</button>
   </div>
@@ -248,6 +249,33 @@
         <button class="app-btn" onclick="fakeOpenApp('Google Calendar')">🗓 Google Calendar</button>
         <button class="app-btn" onclick="fakeOpenApp('Apple Calendar')">🍎 Apple Calendar</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Parent settings -->
+<div class="modal-overlay" id="parentSettingsModal" onclick="closeIfBackdrop(event, 'parentSettingsModal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h2>Profile Settings</h2>
+      <button class="modal-close" onclick="closeModal('parentSettingsModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field-row">
+        <div class="field-label">Selected Year Groups</div>
+        <div class="onboarding-grid" id="parentYearGroupGrid">
+          <label class="onboarding-option"><input type="checkbox" value="reception"><span>Reception</span></label>
+          <label class="onboarding-option"><input type="checkbox" value="year1"><span>Year 1</span></label>
+          <label class="onboarding-option"><input type="checkbox" value="year2"><span>Year 2</span></label>
+          <label class="onboarding-option"><input type="checkbox" value="year3"><span>Year 3</span></label>
+          <label class="onboarding-option"><input type="checkbox" value="year4"><span>Year 4</span></label>
+          <label class="onboarding-option"><input type="checkbox" value="year5"><span>Year 5</span></label>
+          <label class="onboarding-option"><input type="checkbox" value="year6"><span>Year 6</span></label>
+        </div>
+      </div>
+      <div id="parentSettingsError" class="error-msg" style="display:none;"></div>
+      <button class="btn btn-primary btn-block" onclick="saveParentSettings()">Save Preferences</button>
     </div>
   </div>
 </div>
