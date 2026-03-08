@@ -49,6 +49,7 @@ The app now reads/writes events from Supabase.
    This auto-creates a `profiles` row for each new Auth user with:
    - `status = 'pending'`
    - `role = 'parent'`
+   If you see "Database error saving new user", re-run this SQL script to refresh the trigger/function.
 3. Create `js/config.js` (or copy `js/config.example.js`) and set:
    ```js
    window.SUPABASE_URL = 'https://YOUR_PROJECT_REF.supabase.co';
