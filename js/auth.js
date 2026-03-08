@@ -22,7 +22,7 @@ async function fetchUserProfile(userId) {
     .from('profiles')
     .select('status, role')
     .eq('id', userId)
-    .single();
+    .maybeSingle();
 
   if (error) throw error;
   return data;
@@ -85,6 +85,7 @@ async function handleLogin(event) {
       return;
     }
   } catch (profileError) {
+    console.error('Profile check failed:', profileError);
     await supabaseClient.auth.signOut();
     showMessage('loginMessage', 'Could not verify your account status. Please try again.', 'error');
     return;
@@ -159,6 +160,7 @@ async function initAuthPage() {
       await supabaseClient.auth.signOut();
       showMessage('loginMessage', 'Your account is awaiting approval from the administrator.', 'error');
     } catch (e) {
+      console.error('Session profile check failed:', e);
       await supabaseClient.auth.signOut();
       showMessage('loginMessage', 'Could not verify your account status. Please log in again.', 'error');
     }

@@ -95,11 +95,19 @@ async function requireAuthSession() {
     .from('profiles')
     .select('status, role')
     .eq('id', userId)
-    .single();
+    .maybeSingle();
 
   if (profileError) {
+    console.error('Profile verification failed:', profileError);
     await supabaseClient.auth.signOut();
     localStorage.setItem('auth_notice', 'Could not verify your account status. Please log in again.');
+    window.location.href = 'auth.html';
+    return false;
+  }
+
+  if (!profile) {
+    await supabaseClient.auth.signOut();
+    localStorage.setItem('auth_notice', 'Your profile is not set up yet. Contact the administrator.');
     window.location.href = 'auth.html';
     return false;
   }
