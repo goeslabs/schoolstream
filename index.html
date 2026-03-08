@@ -255,12 +255,14 @@
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/config.js"></script>
+<script src="js/config.js?v=2"></script>
 <script>
   (function () {
     const url = window.SUPABASE_URL;
     const key = window.SUPABASE_ANON_KEY;
+    const configLoaded = window.__APP_CONFIG_LOADED__ === true;
     const hasValidConfig =
+      (configLoaded || (typeof url === 'string' && typeof key === 'string')) &&
       typeof url === 'string' &&
       typeof key === 'string' &&
       url.length > 0 &&
@@ -274,7 +276,9 @@
     document.addEventListener('DOMContentLoaded', function () {
       const notice = document.createElement('div');
       notice.style.cssText = 'position:sticky;top:0;z-index:9999;background:#fff3cd;color:#664d03;border-bottom:1px solid #ffecb5;padding:10px 14px;font:500 13px/1.4 sans-serif;text-align:center;';
-      notice.textContent = 'Supabase config missing. Add SUPABASE_URL and SUPABASE_ANON_KEY in js/config.js (see js/config.example.js).';
+      notice.textContent = configLoaded
+        ? 'Supabase config loaded but invalid. Check SUPABASE_URL and SUPABASE_ANON_KEY in js/config.js.'
+        : 'Supabase config file not loaded. Ensure js/config.js exists and is served (see js/config.example.js).';
       document.body.prepend(notice);
     });
   })();
