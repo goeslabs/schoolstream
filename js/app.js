@@ -639,6 +639,21 @@ function showToast(msg) {
   setTimeout(() => toast.classList.remove('show'), 3000);
 }
 
+async function logout() {
+  if (!supabaseClient) {
+    window.location.href = 'auth.html';
+    return;
+  }
+
+  const { error } = await supabaseClient.auth.signOut();
+  if (error) {
+    showToast('Could not log out. Please try again.');
+    return;
+  }
+
+  window.location.href = 'auth.html';
+}
+
 function yearLabel(id) {
   return {
     all: 'All Years', reception: 'Reception',
