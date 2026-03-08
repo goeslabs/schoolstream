@@ -65,7 +65,7 @@ async function handleRegister(event) {
     email,
     password,
     options: {
-      data: { approval_status: 'pending' }
+      data: { status: 'pending', role: 'parent' }
     }
   });
 

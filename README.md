@@ -15,6 +15,8 @@ schoolstream/
 │   ├── auth.js           # Login/registration logic
 │   ├── config.example.js # Supabase config template (committed)
 │   └── config.js         # Local Supabase config (gitignored)
+├── supabase/
+│   └── profiles_trigger.sql # Auto-create profile rows from auth.users
 └── README.md
 ```
 
@@ -43,13 +45,17 @@ The app now reads/writes events from Supabase.
      created_at timestamp default now()
    );
    ```
-2. Create `js/config.js` (or copy `js/config.example.js`) and set:
+2. Run `supabase/profiles_trigger.sql` in Supabase SQL Editor.
+   This auto-creates a `profiles` row for each new Auth user with:
+   - `status = 'pending'`
+   - `role = 'parent'`
+3. Create `js/config.js` (or copy `js/config.example.js`) and set:
    ```js
    window.SUPABASE_URL = 'https://YOUR_PROJECT_REF.supabase.co';
    window.SUPABASE_ANON_KEY = 'YOUR_SUPABASE_PUBLISHABLE_KEY';
    ```
-3. `js/config.js` is gitignored so keys are not committed.
-4. Add a permissive RLS policy for development (or configure auth/policies as needed for production).
+4. `js/config.js` is gitignored so keys are not committed.
+5. Add a permissive RLS policy for development (or configure auth/policies as needed for production).
 
 ## Deploying to Vercel
 
