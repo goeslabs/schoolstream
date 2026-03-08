@@ -6,11 +6,13 @@ A mobile-first school events calendar. School staff paste emails, AI extracts th
 
 ```
 schoolstream/
+├── auth.html         # Login and registration page
 ├── index.html        # App shell and all HTML markup
 ├── css/
 │   └── styles.css    # All styles (mobile-first, responsive)
 ├── js/
-│   ├── app.js            # All JavaScript logic
+│   ├── app.js            # Calendar app logic
+│   ├── auth.js           # Login/registration logic
 │   ├── config.example.js # Supabase config template (committed)
 │   └── config.js         # Local Supabase config (gitignored)
 └── README.md

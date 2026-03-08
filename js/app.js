@@ -76,6 +76,16 @@ async function loadEventsFromSupabase() {
   events = (data || []).map(toUIEvent);
 }
 
+async function requireAuthSession() {
+  const { data, error } = await supabaseClient.auth.getSession();
+  if (error) throw error;
+  if (!data.session) {
+    window.location.href = 'auth.html';
+    return false;
+  }
+  return true;
+}
+
 function ensureSupabaseReady() {
   if (supabaseClient) return true;
   showToast('Supabase is not configured yet.');
@@ -604,6 +614,8 @@ function renderAll() {
 async function initApp() {
   try {
     initSupabase();
+    const hasSession = await requireAuthSession();
+    if (!hasSession) return;
     await loadEventsFromSupabase();
     renderAll();
   } catch (error) {
