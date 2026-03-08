@@ -49,22 +49,14 @@ The app now reads/writes events from Supabase.
 3. `js/config.js` is gitignored so keys are not committed.
 4. Add a permissive RLS policy for development (or configure auth/policies as needed for production).
 
-### Deployment note
+## Deploying to Vercel
 
-For Netlify, `netlify.toml` now generates `js/config.js` during deploy from environment variables.
-Set these in Netlify Site Settings -> Environment Variables:
-- `SUPABASE_URL`
-- `SUPABASE_ANON_KEY`
-
-## Deploying to Netlify (recommended)
-
-1. Push this repo to GitHub
-2. Go to [netlify.com](https://netlify.com) → **Add new site** → **Import from Git**
-3. Select your GitHub repo
-4. Netlify will use `netlify.toml` build settings automatically
-5. Click **Deploy** — your site will be live in ~30 seconds
-
-Every time you push a change to GitHub, Netlify redeploys automatically.
+1. Push this repo to GitHub.
+2. Import the repo in Vercel.
+3. In Vercel Project Settings -> Environment Variables, add:
+   - `SUPABASE_URL`
+   - `SUPABASE_ANON_KEY`
+4. Deploy. `vercel.json` generates `js/config.js` at build time from those environment variables.
 
 ## Roadmap
 
