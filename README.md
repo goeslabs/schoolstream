@@ -57,6 +57,7 @@ The app now reads/writes events from Supabase.
    - `SUPABASE_URL`
    - `SUPABASE_ANON_KEY`
 4. Deploy. `vercel.json` generates `js/config.js` at build time from those environment variables.
+5. If env vars are missing, build will fail (intentional) so you do not deploy an invalid config.
 
 ## Roadmap
 
