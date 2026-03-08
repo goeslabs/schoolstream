@@ -17,6 +17,17 @@ function clearMessage(id) {
   el.style.display = 'none';
 }
 
+async function fetchUserProfile(userId) {
+  const { data, error } = await supabaseClient
+    .from('profiles')
+    .select('status, role')
+    .eq('id', userId)
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
 function switchAuthView(view) {
   const loginTab = document.getElementById('loginTab');
   const registerTab = document.getElementById('registerTab');
@@ -39,9 +50,43 @@ async function handleLogin(event) {
   const email = document.getElementById('loginEmail').value.trim();
   const password = document.getElementById('loginPassword').value;
 
-  const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+  const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
   if (error) {
     showMessage('loginMessage', error.message, 'error');
+    return;
+  }
+
+  try {
+    const userId = data?.user?.id;
+    if (!userId) {
+      await supabaseClient.auth.signOut();
+      showMessage('loginMessage', 'Could not load user profile. Please try again.', 'error');
+      return;
+    }
+
+    const profile = await fetchUserProfile(userId);
+    const status = (profile?.status || '').toLowerCase();
+    const role = (profile?.role || '').toLowerCase();
+
+    if (status === 'pending') {
+      await supabaseClient.auth.signOut();
+      showMessage('loginMessage', 'Your account is awaiting approval from the administrator.', 'error');
+      return;
+    }
+
+    if (status !== 'approved') {
+      await supabaseClient.auth.signOut();
+      showMessage('loginMessage', 'Your account is not approved yet. Contact the administrator.', 'error');
+      return;
+    }
+
+    if (role === 'admin') {
+      window.location.href = 'index.html';
+      return;
+    }
+  } catch (profileError) {
+    await supabaseClient.auth.signOut();
+    showMessage('loginMessage', 'Could not verify your account status. Please try again.', 'error');
     return;
   }
 
@@ -96,9 +141,27 @@ async function initAuthPage() {
 
   supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+  const pendingNotice = localStorage.getItem('auth_notice');
+  if (pendingNotice) {
+    showMessage('loginMessage', pendingNotice, 'error');
+    localStorage.removeItem('auth_notice');
+  }
+
   const { data } = await supabaseClient.auth.getSession();
-  if (data?.session) {
-    window.location.href = 'index.html';
+  if (data?.session?.user?.id) {
+    try {
+      const profile = await fetchUserProfile(data.session.user.id);
+      const status = (profile?.status || '').toLowerCase();
+      if (status === 'approved') {
+        window.location.href = 'index.html';
+        return;
+      }
+      await supabaseClient.auth.signOut();
+      showMessage('loginMessage', 'Your account is awaiting approval from the administrator.', 'error');
+    } catch (e) {
+      await supabaseClient.auth.signOut();
+      showMessage('loginMessage', 'Could not verify your account status. Please log in again.', 'error');
+    }
   }
 }
 

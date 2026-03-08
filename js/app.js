@@ -83,6 +83,42 @@ async function requireAuthSession() {
     window.location.href = 'auth.html';
     return false;
   }
+
+  const userId = data.session.user?.id;
+  if (!userId) {
+    await supabaseClient.auth.signOut();
+    window.location.href = 'auth.html';
+    return false;
+  }
+
+  const { data: profile, error: profileError } = await supabaseClient
+    .from('profiles')
+    .select('status, role')
+    .eq('id', userId)
+    .single();
+
+  if (profileError) {
+    await supabaseClient.auth.signOut();
+    localStorage.setItem('auth_notice', 'Could not verify your account status. Please log in again.');
+    window.location.href = 'auth.html';
+    return false;
+  }
+
+  const status = (profile?.status || '').toLowerCase();
+  if (status === 'pending') {
+    await supabaseClient.auth.signOut();
+    localStorage.setItem('auth_notice', 'Your account is awaiting approval from the administrator.');
+    window.location.href = 'auth.html';
+    return false;
+  }
+
+  if (status !== 'approved') {
+    await supabaseClient.auth.signOut();
+    localStorage.setItem('auth_notice', 'Your account is not approved yet. Contact the administrator.');
+    window.location.href = 'auth.html';
+    return false;
+  }
+
   return true;
 }
 
