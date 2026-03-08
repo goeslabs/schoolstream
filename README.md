@@ -23,6 +23,27 @@ No build tools required — just open `index.html` in a browser, or use VS Code'
 3. Right-click `index.html` → **Open with Live Server**
 4. The app opens at `http://127.0.0.1:5500` and reloads on every save
 
+## Supabase Setup
+
+The app now reads/writes events from Supabase.
+
+1. Create the `events` table in Supabase:
+   ```sql
+   create table events (
+     id bigint generated always as identity primary key,
+     title text not null,
+     date date not null,
+     time text,
+     year_group text default 'all',
+     notes text,
+     created_at timestamp default now()
+   );
+   ```
+2. In `index.html`, set:
+   - `window.SUPABASE_URL`
+   - `window.SUPABASE_ANON_KEY`
+3. Add a permissive RLS policy for development (or configure auth/policies as needed for production).
+
 ## Deploying to Netlify (recommended)
 
 1. Push this repo to GitHub

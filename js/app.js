@@ -16,6 +16,10 @@ const YEARS = [
   { id: 'year6',     label: 'Year 6',     color: '#AA2A2A' },
 ];
 
+const SUPABASE_URL = window.SUPABASE_URL || 'YOUR_SUPABASE_URL';
+const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || 'YOUR_SUPABASE_ANON_KEY';
+const SUPABASE_EVENT_COLUMNS = 'id,title,date,time,year_group,notes';
+
 // ── STATE ───────────────────────────────────────────────────────────────────────
 
 let currentDate   = new Date();
@@ -24,7 +28,59 @@ let selectedYears = new Set(['all']);
 let searchQuery   = '';
 let currentEventId = null;
 let events        = [];
-let nextId        = 1;
+let supabaseClient = null;
+
+// ── SUPABASE ────────────────────────────────────────────────────────────────────
+
+function toUIEvent(row) {
+  return {
+    id: row.id,
+    title: row.title,
+    date: row.date,
+    time: row.time || 'All Day',
+    yearGroup: row.year_group || 'all',
+    notes: row.notes || ''
+  };
+}
+
+function buildDbPayload({ title, date, time, yearGroup, notes }) {
+  return {
+    title,
+    date,
+    time: time || 'All Day',
+    year_group: yearGroup || 'all',
+    notes: notes || ''
+  };
+}
+
+function initSupabase() {
+  if (!window.supabase?.createClient) {
+    throw new Error('Supabase SDK not loaded.');
+  }
+
+  if (SUPABASE_URL === 'YOUR_SUPABASE_URL' || SUPABASE_ANON_KEY === 'YOUR_SUPABASE_ANON_KEY') {
+    throw new Error('Supabase credentials not configured.');
+  }
+
+  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+}
+
+async function loadEventsFromSupabase() {
+  const { data, error } = await supabaseClient
+    .from('events')
+    .select(SUPABASE_EVENT_COLUMNS)
+    .order('date', { ascending: true })
+    .order('id', { ascending: true });
+
+  if (error) throw error;
+  events = (data || []).map(toUIEvent);
+}
+
+function ensureSupabaseReady() {
+  if (supabaseClient) return true;
+  showToast('Supabase is not configured yet.');
+  return false;
+}
 
 // ── FILTERS ─────────────────────────────────────────────────────────────────────
 
@@ -281,8 +337,17 @@ function openEventModal(id) {
   document.getElementById('eventModal').classList.add('open');
 }
 
-function deleteCurrentEvent() {
+async function deleteCurrentEvent() {
+  if (!ensureSupabaseReady()) return;
+  if (currentEventId == null) return;
+  const { error } = await supabaseClient.from('events').delete().eq('id', currentEventId);
+  if (error) {
+    showToast('Could not delete event. Please try again.');
+    return;
+  }
+
   events = events.filter(e => e.id !== currentEventId);
+  currentEventId = null;
   closeModal('eventModal');
   renderAll();
   showToast('🗑️ Event deleted');
@@ -306,7 +371,8 @@ function openManualModal() {
   document.getElementById('manualModal').classList.add('open');
 }
 
-function saveManualEvent() {
+async function saveManualEvent() {
+  if (!ensureSupabaseReady()) return;
   const title     = document.getElementById('man_title').value.trim();
   const date      = document.getElementById('man_date').value;
   const time      = document.getElementById('man_time').value.trim();
@@ -321,7 +387,20 @@ function saveManualEvent() {
   }
 
   errEl.style.display = 'none';
-  events.push({ id: nextId++, title, date, time: time || 'All Day', yearGroup, notes });
+  const payload = buildDbPayload({ title, date, time, yearGroup, notes });
+  const { data, error } = await supabaseClient
+    .from('events')
+    .insert(payload)
+    .select(SUPABASE_EVENT_COLUMNS)
+    .single();
+
+  if (error) {
+    errEl.textContent = 'Could not save event. Please try again.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  events.push(toUIEvent(data));
   closeModal('manualModal');
   renderAll();
   showToast('✅ Event added');
@@ -428,9 +507,10 @@ ${text}`;
   }
 }
 
-function saveAllParsed() {
+async function saveAllParsed() {
+  if (!ensureSupabaseReady()) return;
   const parsed = window._parsed || [];
-  let added = 0;
+  const payloads = [];
 
   parsed.forEach((_, i) => {
     const title     = document.getElementById(`pt_${i}`)?.value?.trim();
@@ -439,15 +519,28 @@ function saveAllParsed() {
     const yearGroup = document.getElementById(`py_${i}`)?.value;
     const notes     = document.getElementById(`pn_${i}`)?.value?.trim();
 
-    if (title && date) {
-      events.push({ id: nextId++, title, date, time: time || 'All Day', yearGroup: yearGroup || 'all', notes: notes || '' });
-      added++;
-    }
+    if (title && date) payloads.push(buildDbPayload({ title, date, time, yearGroup, notes }));
   });
 
+  if (!payloads.length) {
+    showToast('No valid events to save.');
+    return;
+  }
+
+  const { data, error } = await supabaseClient
+    .from('events')
+    .insert(payloads)
+    .select(SUPABASE_EVENT_COLUMNS);
+
+  if (error) {
+    showToast('Could not save parsed events. Please try again.');
+    return;
+  }
+
+  events.push(...(data || []).map(toUIEvent));
   closeModal('parseModal');
   renderAll();
-  showToast(`✅ ${added} event${added !== 1 ? 's' : ''} added`);
+  showToast(`✅ ${payloads.length} event${payloads.length !== 1 ? 's' : ''} added`);
 }
 
 // ── SUBSCRIBE MODAL ─────────────────────────────────────────────────────────────
@@ -508,4 +601,16 @@ function renderAll() {
 }
 
 // ── INIT ────────────────────────────────────────────────────────────────────────
-renderAll();
+async function initApp() {
+  try {
+    initSupabase();
+    await loadEventsFromSupabase();
+    renderAll();
+  } catch (error) {
+    console.error(error);
+    renderAll();
+    showToast('Supabase setup error. Add SUPABASE_URL and SUPABASE_ANON_KEY in index.html.');
+  }
+}
+
+initApp();
