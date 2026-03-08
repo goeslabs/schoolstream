@@ -29,6 +29,7 @@ let searchQuery   = '';
 let currentEventId = null;
 let events        = [];
 let supabaseClient = null;
+let currentUserProfile = null;
 
 // ── SUPABASE ────────────────────────────────────────────────────────────────────
 
@@ -134,7 +135,35 @@ async function requireAuthSession() {
     return false;
   }
 
+  currentUserProfile = profile;
+  applyRoleBasedUi();
+
   return true;
+}
+
+function getCurrentRole() {
+  return (currentUserProfile?.role || '').toLowerCase();
+}
+
+function isParentUser() {
+  return getCurrentRole() === 'parent';
+}
+
+function getAccessibleEvents() {
+  if (!isParentUser()) return events;
+  const allowedYears = new Set((currentUserProfile?.year_groups || []).map(String));
+  return events.filter(e => e.yearGroup === 'all' || allowedYears.has(e.yearGroup));
+}
+
+function applyRoleBasedUi() {
+  const isParent = isParentUser();
+  const addHeaderBtn = document.getElementById('addEventHeaderBtn');
+  const addBottomBtn = document.getElementById('addEventBottomBtn');
+  const deleteBtn = document.getElementById('deleteEventBtn');
+
+  if (addHeaderBtn) addHeaderBtn.style.display = isParent ? 'none' : '';
+  if (addBottomBtn) addBottomBtn.style.display = isParent ? 'none' : '';
+  if (deleteBtn) deleteBtn.style.display = isParent ? 'none' : '';
 }
 
 function ensureSupabaseReady() {
@@ -160,13 +189,15 @@ function renderFilters() {
     bar.appendChild(chip);
   });
 
+  const accessibleEvents = getAccessibleEvents();
+
   // Desktop sidebar list
   const sidebar = document.getElementById('sidebarYearList');
   sidebar.innerHTML = '';
   YEARS.forEach(y => {
     const count = y.id === 'all'
-      ? events.length
-      : events.filter(e => e.yearGroup === y.id || e.yearGroup === 'all').length;
+      ? accessibleEvents.length
+      : accessibleEvents.filter(e => e.yearGroup === y.id || e.yearGroup === 'all').length;
 
     const item = document.createElement('div');
     item.className = 'year-chip' + (selectedYears.has(y.id) ? ' active' : '');
@@ -196,7 +227,7 @@ function toggleYear(id) {
 }
 
 function getFiltered() {
-  return events
+  return getAccessibleEvents()
     .filter(e => {
       const yearMatch = selectedYears.has('all') || selectedYears.has(e.yearGroup) || e.yearGroup === 'all';
       const searchMatch = !searchQuery
@@ -395,10 +426,16 @@ function openEventModal(id) {
     <div class="meta-chip event-year-badge y-${ev.yearGroup}">${yearLabel(ev.yearGroup)}</div>
   `;
   document.getElementById('eventModalNotes').textContent = ev.notes || 'No additional notes.';
+  const deleteBtn = document.getElementById('deleteEventBtn');
+  if (deleteBtn) deleteBtn.style.display = isParentUser() ? 'none' : '';
   document.getElementById('eventModal').classList.add('open');
 }
 
 async function deleteCurrentEvent() {
+  if (isParentUser()) {
+    showToast('Only admins can delete events.');
+    return;
+  }
   if (!ensureSupabaseReady()) return;
   if (currentEventId == null) return;
   const { error } = await supabaseClient.from('events').delete().eq('id', currentEventId);
@@ -417,6 +454,10 @@ async function deleteCurrentEvent() {
 // ── ADD CHOICE MODAL ────────────────────────────────────────────────────────────
 
 function openAddModal() {
+  if (isParentUser()) {
+    showToast('Only admins can add events.');
+    return;
+  }
   document.getElementById('addModal').classList.add('open');
 }
 
@@ -433,6 +474,10 @@ function openManualModal() {
 }
 
 async function saveManualEvent() {
+  if (isParentUser()) {
+    showToast('Only admins can add events.');
+    return;
+  }
   if (!ensureSupabaseReady()) return;
   const title     = document.getElementById('man_title').value.trim();
   const date      = document.getElementById('man_date').value;
@@ -569,6 +614,10 @@ ${text}`;
 }
 
 async function saveAllParsed() {
+  if (isParentUser()) {
+    showToast('Only admins can add events.');
+    return;
+  }
   if (!ensureSupabaseReady()) return;
   const parsed = window._parsed || [];
   const payloads = [];

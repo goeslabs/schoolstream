@@ -15,7 +15,7 @@
   <div class="header-right">
     <button class="icon-btn" onclick="logout()" title="Log out">↩</button>
     <button class="icon-btn" onclick="openSubscribeModal()">📅</button>
-    <button class="icon-btn amber" onclick="openAddModal()">+</button>
+    <button class="icon-btn amber" id="addEventHeaderBtn" onclick="openAddModal()">+</button>
   </div>
 </header>
 
@@ -89,7 +89,7 @@
   <button class="bottom-nav-item active" id="navMonth" onclick="setView('month', null, 'navMonth')">
     <span class="nav-icon">📅</span><span>Calendar</span>
   </button>
-  <button class="bottom-nav-item add-btn" onclick="openAddModal()">
+  <button class="bottom-nav-item add-btn" id="addEventBottomBtn" onclick="openAddModal()">
     <span class="nav-icon">＋</span><span>Add Event</span>
   </button>
   <button class="bottom-nav-item" id="navList" onclick="setView('list', null, 'navList')">
@@ -190,7 +190,7 @@
       <div class="notes-label">📝 Notes</div>
       <div class="notes-box" id="eventModalNotes"></div>
       <div style="margin-top:0.875rem;">
-        <button class="btn btn-danger btn-block" onclick="deleteCurrentEvent()">Delete Event</button>
+        <button class="btn btn-danger btn-block" id="deleteEventBtn" onclick="deleteCurrentEvent()">Delete Event</button>
       </div>
     </div>
   </div>
