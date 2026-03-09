@@ -163,11 +163,17 @@ function applyRoleBasedUi() {
   const addBottomBtn = document.getElementById('addEventBottomBtn');
   const deleteBtn = document.getElementById('deleteEventBtn');
   const parentSettingsBtn = document.getElementById('parentSettingsBtn');
+  const filterBar = document.getElementById('filterBar');
+  const yearFilterSidebarSection = document.getElementById('yearFilterSidebarSection');
 
   if (addHeaderBtn) addHeaderBtn.style.display = isParent ? 'none' : '';
   if (addBottomBtn) addBottomBtn.style.display = isParent ? 'none' : '';
   if (deleteBtn) deleteBtn.style.display = isParent ? 'none' : '';
   if (parentSettingsBtn) parentSettingsBtn.style.display = isParent ? '' : 'none';
+  if (filterBar) filterBar.style.display = isParent ? 'none' : '';
+  if (yearFilterSidebarSection) yearFilterSidebarSection.style.display = isParent ? 'none' : '';
+
+  if (isParent) selectedYears = new Set(['all']);
 }
 
 function ensureSupabaseReady() {
@@ -181,6 +187,19 @@ function ensureSupabaseReady() {
 function renderFilters() {
   // Mobile horizontal chip bar
   const bar = document.getElementById('filterBar');
+  const yearFilterSidebarSection = document.getElementById('yearFilterSidebarSection');
+
+  if (isParentUser()) {
+    bar.innerHTML = '';
+    const sidebar = document.getElementById('sidebarYearList');
+    if (sidebar) sidebar.innerHTML = '';
+    if (bar) bar.style.display = 'none';
+    if (yearFilterSidebarSection) yearFilterSidebarSection.style.display = 'none';
+    return;
+  }
+
+  if (bar) bar.style.display = '';
+  if (yearFilterSidebarSection) yearFilterSidebarSection.style.display = '';
   bar.innerHTML = '';
   YEARS.forEach(y => {
     const chip = document.createElement('div');
