@@ -31,6 +31,7 @@ let events        = [];
 let supabaseClient = null;
 let currentUserProfile = null;
 let currentUserId = null;
+let pendingManualDate = '';
 
 // ── SUPABASE ────────────────────────────────────────────────────────────────────
 
@@ -325,6 +326,11 @@ function renderCalendar() {
       cell.appendChild(more);
     }
 
+    cell.onclick = () => {
+      if (!isInMonth || isParentUser()) return;
+      openAddModal(dateStr);
+    };
+
     body.appendChild(cell);
   }
 }
@@ -496,11 +502,12 @@ async function deleteCurrentEvent() {
 
 // ── ADD CHOICE MODAL ────────────────────────────────────────────────────────────
 
-function openAddModal() {
+function openAddModal(prefillDate = '') {
   if (isParentUser()) {
     showToast('Only admins can add events.');
     return;
   }
+  pendingManualDate = prefillDate || '';
   document.getElementById('addModal').classList.add('open');
 }
 
@@ -508,11 +515,12 @@ function openAddModal() {
 
 function openManualModal() {
   document.getElementById('man_title').value = '';
-  document.getElementById('man_date').value  = '';
+  document.getElementById('man_date').value  = pendingManualDate || '';
   document.getElementById('man_time').value  = '';
   document.getElementById('man_year').value  = 'all';
   document.getElementById('man_notes').value = '';
   document.getElementById('manualError').style.display = 'none';
+  pendingManualDate = '';
   document.getElementById('manualModal').classList.add('open');
 }
 
