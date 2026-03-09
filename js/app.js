@@ -162,6 +162,7 @@ function applyRoleBasedUi() {
   const addHeaderBtn = document.getElementById('addEventHeaderBtn');
   const addBottomBtn = document.getElementById('addEventBottomBtn');
   const deleteBtn = document.getElementById('deleteEventBtn');
+  const duplicateBtn = document.getElementById('duplicateEventBtn');
   const parentSettingsBtn = document.getElementById('parentSettingsBtn');
   const filterBar = document.getElementById('filterBar');
   const yearFilterSidebarSection = document.getElementById('yearFilterSidebarSection');
@@ -169,6 +170,7 @@ function applyRoleBasedUi() {
   if (addHeaderBtn) addHeaderBtn.style.display = isParent ? 'none' : '';
   if (addBottomBtn) addBottomBtn.style.display = isParent ? 'none' : '';
   if (deleteBtn) deleteBtn.style.display = isParent ? 'none' : '';
+  if (duplicateBtn) duplicateBtn.style.display = isParent ? 'none' : '';
   if (parentSettingsBtn) parentSettingsBtn.style.display = isParent ? '' : 'none';
   if (filterBar) filterBar.style.display = isParent ? 'none' : '';
   if (yearFilterSidebarSection) yearFilterSidebarSection.style.display = isParent ? 'none' : '';
@@ -450,7 +452,9 @@ function openEventModal(id) {
   `;
   document.getElementById('eventModalNotes').textContent = ev.notes || 'No additional notes.';
   const deleteBtn = document.getElementById('deleteEventBtn');
+  const duplicateBtn = document.getElementById('duplicateEventBtn');
   if (deleteBtn) deleteBtn.style.display = isParentUser() ? 'none' : '';
+  if (duplicateBtn) duplicateBtn.style.display = isParentUser() ? 'none' : '';
   document.getElementById('eventModal').classList.add('open');
 }
 
@@ -494,6 +498,24 @@ function openManualModal() {
   document.getElementById('man_notes').value = '';
   document.getElementById('manualError').style.display = 'none';
   document.getElementById('manualModal').classList.add('open');
+}
+
+function duplicateCurrentEvent() {
+  if (isParentUser()) return;
+
+  const ev = events.find(e => e.id === currentEventId);
+  if (!ev) {
+    showToast('Could not find event to duplicate.');
+    return;
+  }
+
+  closeModal('eventModal');
+  openManualModal();
+  document.getElementById('man_title').value = ev.title || '';
+  document.getElementById('man_date').value = '';
+  document.getElementById('man_time').value = (ev.time && ev.time !== 'All Day') ? ev.time : '';
+  document.getElementById('man_year').value = ev.yearGroup || 'all';
+  document.getElementById('man_notes').value = ev.notes || '';
 }
 
 async function saveManualEvent() {
