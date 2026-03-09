@@ -491,6 +491,28 @@ select.field-input {
 }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+/* ── FOOTER ── */
+.app-footer {
+  margin: 0.75rem 0.875rem 0.95rem;
+  padding: 0.75rem 0.9rem;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.76rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.app-footer strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+.app-footer a {
+  color: var(--amber-dark);
+  text-decoration: none;
+  font-weight: 500;
+}
+.app-footer a:hover { text-decoration: underline; }
+
 /* ── YEAR GROUP COLOURS ── */
 .y-reception { background: #FFE4CC; color: #B85000; }
 .y-year1     { background: #D4F0DC; color: #1A6E36; }
@@ -713,6 +735,12 @@ select.field-input {
   .cal-nav h2 { font-size: 1.65rem; }
   .list-view { padding: 1.5rem; }
   .event-card { padding: 0.9rem 1.1rem; }
+  .app-footer {
+    margin: 0.5rem 1.5rem 1.35rem;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
 
   .modal-overlay { align-items: center; justify-content: center; padding: 1rem; }
   .modal { border-radius: 20px; max-width: 520px; padding-bottom: 1.5rem; }
