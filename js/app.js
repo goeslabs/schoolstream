@@ -55,6 +55,16 @@ function buildDbPayload({ title, date, time, yearGroup, notes }) {
   };
 }
 
+function formatLocalDate(date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+function parseLocalDateString(dateStr) {
+  const [y, m, d] = (dateStr || '').split('-').map(Number);
+  if (!y || !m || !d) return null;
+  return new Date(y, m - 1, d, 12, 0, 0, 0);
+}
+
 function initSupabase() {
   if (!window.supabase?.createClient) {
     throw new Error('Supabase SDK not loaded.');
@@ -283,14 +293,14 @@ function renderCalendar() {
     const dayNum = i - firstDay + 1;
     const cell   = document.createElement('div');
     cell.className = 'cal-cell';
+    const isInMonth = dayNum >= 1 && dayNum <= daysInMonth;
 
     const cellDate = new Date(y, m, dayNum); cellDate.setHours(0, 0, 0, 0);
-    if (dayNum < 1 || dayNum > daysInMonth) cell.classList.add('other-month');
+    if (!isInMonth) cell.classList.add('other-month');
     if (cellDate.getTime() === today.getTime()) cell.classList.add('today');
 
-    const safeDay = Math.max(1, Math.min(dayNum, daysInMonth));
-    const dateStr = `${y}-${String(m + 1).padStart(2, '0')}-${String(safeDay).padStart(2, '0')}`;
-    const dayEvents = filtered.filter(e => e.date === dateStr);
+    const dateStr = isInMonth ? `${y}-${String(m + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}` : '';
+    const dayEvents = isInMonth ? filtered.filter(e => e.date === dateStr) : [];
 
     // Date number
     const dateEl = document.createElement('div');
@@ -343,7 +353,8 @@ function renderList() {
 
   let lastMonth = '';
   filtered.forEach(ev => {
-    const d  = new Date(ev.date + 'T12:00:00');
+    const d = parseLocalDateString(ev.date);
+    if (!d) return;
     const mk = `${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
 
     if (mk !== lastMonth) {
@@ -375,7 +386,7 @@ function renderList() {
 // ── UPCOMING (sidebar) ──────────────────────────────────────────────────────────
 
 function renderUpcoming() {
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = formatLocalDate(new Date());
   const upcoming = getFiltered().filter(e => e.date >= todayStr).slice(0, 4);
   const container = document.getElementById('upcomingList');
 
@@ -385,7 +396,8 @@ function renderUpcoming() {
   }
 
   container.innerHTML = upcoming.map(ev => {
-    const d = new Date(ev.date + 'T12:00:00');
+    const d = parseLocalDateString(ev.date);
+    if (!d) return '';
     return `
       <div style="display:flex;gap:0.5rem;align-items:center;padding:0.28rem 0.4rem;border-radius:6px;cursor:pointer;"
            onclick="openEventModal(${ev.id})">
@@ -443,7 +455,11 @@ function openEventModal(id) {
   if (!ev) return;
   currentEventId = id;
 
-  const d = new Date(ev.date + 'T12:00:00');
+  const d = parseLocalDateString(ev.date);
+  if (!d) {
+    showToast('Invalid event date.');
+    return;
+  }
   document.getElementById('eventModalTitle').textContent = ev.title;
   document.getElementById('eventModalMeta').innerHTML = `
     <div class="meta-chip">📅 ${d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}</div>
