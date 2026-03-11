@@ -17,7 +17,7 @@ module.exports = async function handler(req, res) {
   }
 
   const adminEmail = process.env.ADMIN_NOTIFY_EMAIL || 'info@goeslabs.com';
-  const fromEmail = process.env.RESEND_FROM_EMAIL || 'SchoolStream <onboarding@resend.dev>';
+  const fromEmail = process.env.RESEND_FROM_EMAIL || 'SchoolStream <noreply@school.goeslabs.com>';
 
   try {
     const resendResp = await fetch('https://api.resend.com/emails', {
