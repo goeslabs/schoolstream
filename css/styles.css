@@ -74,6 +74,23 @@ header {
 .icon-btn.amber { background: var(--amber); color: var(--ink); font-size: 1.25rem; font-weight: 700; }
 .icon-btn.amber:active { background: var(--amber-dark); }
 
+.icon-btn { position: relative; }
+.notif-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--rose);
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 700;
+  line-height: 16px;
+  text-align: center;
+  padding: 0 4px;
+}
+
 /* ── APP BODY ── */
 .app-body {
   height: calc(100dvh - 56px - var(--bottom-nav-h) - var(--safe-bottom));
@@ -478,6 +495,46 @@ select.field-input {
   font-weight: 500; cursor: pointer; text-align: center; color: var(--ink);
 }
 .app-btn:active { background: var(--border); }
+
+.pending-users-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.pending-user-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--cream);
+  padding: 0.75rem;
+}
+
+.pending-user-email {
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+}
+
+.pending-user-meta {
+  font-size: 0.76rem;
+  color: var(--muted);
+  display: flex;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.6rem;
+}
+
+.pending-user-actions {
+  display: flex;
+  gap: 0.45rem;
+}
+
+.pending-empty {
+  color: var(--muted);
+  text-align: center;
+  font-size: 0.84rem;
+  padding: 1rem 0.4rem;
+}
 
 /* ── TOAST ── */
 .toast {

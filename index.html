@@ -14,6 +14,10 @@
   <div class="logo">School<span>Stream</span></div>
   <div class="header-right">
     <button class="icon-btn" onclick="logout()" title="Log out">↩</button>
+    <button class="icon-btn" id="adminApprovalsBtn" onclick="openAdminApprovalsModal()" title="Pending Approvals" style="display:none;">
+      🔔
+      <span class="notif-badge" id="pendingBadge" style="display:none;">0</span>
+    </button>
     <button class="icon-btn" id="parentSettingsBtn" onclick="openParentSettingsModal()" title="Profile Settings">⚙</button>
     <button class="icon-btn" onclick="openSubscribeModal()">📅</button>
     <button class="icon-btn amber" id="addEventHeaderBtn" onclick="openAddModal()">+</button>
@@ -282,6 +286,20 @@
       </div>
       <div id="parentSettingsError" class="error-msg" style="display:none;"></div>
       <button class="btn btn-primary btn-block" onclick="saveParentSettings()">Save Preferences</button>
+    </div>
+  </div>
+</div>
+
+<!-- Admin approvals -->
+<div class="modal-overlay" id="adminApprovalsModal" onclick="closeIfBackdrop(event, 'adminApprovalsModal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h2>Pending Registrations</h2>
+      <button class="modal-close" onclick="closeModal('adminApprovalsModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="pendingUsersList"></div>
     </div>
   </div>
 </div>

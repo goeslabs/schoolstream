@@ -32,6 +32,7 @@ let supabaseClient = null;
 let currentUserProfile = null;
 let currentUserId = null;
 let pendingManualDate = '';
+let pendingUsers = [];
 
 // ── SUPABASE ────────────────────────────────────────────────────────────────────
 
@@ -162,6 +163,10 @@ function isParentUser() {
   return getCurrentRole() === 'parent';
 }
 
+function isAdminUser() {
+  return getCurrentRole() === 'admin';
+}
+
 function getAccessibleEvents() {
   if (!isParentUser()) return events;
   const allowedYears = new Set((currentUserProfile?.year_groups || []).map(String));
@@ -170,11 +175,13 @@ function getAccessibleEvents() {
 
 function applyRoleBasedUi() {
   const isParent = isParentUser();
+  const isAdmin = isAdminUser();
   const addHeaderBtn = document.getElementById('addEventHeaderBtn');
   const addBottomBtn = document.getElementById('addEventBottomBtn');
   const deleteBtn = document.getElementById('deleteEventBtn');
   const duplicateBtn = document.getElementById('duplicateEventBtn');
   const parentSettingsBtn = document.getElementById('parentSettingsBtn');
+  const adminApprovalsBtn = document.getElementById('adminApprovalsBtn');
   const filterBar = document.getElementById('filterBar');
   const yearFilterSidebarSection = document.getElementById('yearFilterSidebarSection');
 
@@ -183,6 +190,7 @@ function applyRoleBasedUi() {
   if (deleteBtn) deleteBtn.style.display = isParent ? 'none' : '';
   if (duplicateBtn) duplicateBtn.style.display = isParent ? 'none' : '';
   if (parentSettingsBtn) parentSettingsBtn.style.display = isParent ? '' : 'none';
+  if (adminApprovalsBtn) adminApprovalsBtn.style.display = isAdmin ? '' : 'none';
   if (filterBar) filterBar.style.display = isParent ? 'none' : '';
   if (yearFilterSidebarSection) yearFilterSidebarSection.style.display = isParent ? 'none' : '';
 
@@ -193,6 +201,146 @@ function ensureSupabaseReady() {
   if (supabaseClient) return true;
   showToast('Supabase is not configured yet.');
   return false;
+}
+
+async function getAccessToken() {
+  const { data, error } = await supabaseClient.auth.getSession();
+  if (error || !data?.session?.access_token) return null;
+  return data.session.access_token;
+}
+
+function formatDateTimeLabel(dateStr) {
+  if (!dateStr) return 'Unknown';
+  const d = new Date(dateStr);
+  if (Number.isNaN(d.getTime())) return dateStr;
+  return d.toLocaleString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
+function updatePendingBadge() {
+  const badge = document.getElementById('pendingBadge');
+  if (!badge || !isAdminUser()) return;
+  const count = pendingUsers.length;
+  badge.textContent = String(count);
+  badge.style.display = count > 0 ? '' : 'none';
+}
+
+function renderPendingUsersList() {
+  const container = document.getElementById('pendingUsersList');
+  if (!container) return;
+
+  if (!pendingUsers.length) {
+    container.innerHTML = '<div class="pending-empty">No pending registrations.</div>';
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="pending-users-list">
+      ${pendingUsers.map(user => `
+        <div class="pending-user-card">
+          <div class="pending-user-email">${user.email || 'Unknown email'}</div>
+          <div class="pending-user-meta">
+            <span>Role: ${user.role || 'parent'}</span>
+            <span>Created: ${formatDateTimeLabel(user.created_at)}</span>
+          </div>
+          <div class="pending-user-actions">
+            <button class="btn btn-primary" onclick="approvePendingUser('${user.id}')">Approve</button>
+            <button class="btn btn-danger" onclick="rejectPendingUser('${user.id}')">Reject</button>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+async function refreshPendingUsers() {
+  if (!isAdminUser()) return;
+  const token = await getAccessToken();
+  if (!token) {
+    showToast('Session expired. Please log in again.');
+    return;
+  }
+
+  const resp = await fetch('/api/admin-pending-users', {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  if (!resp.ok) {
+    console.error('Failed to load pending users:', await resp.text());
+    showToast('Could not load pending registrations.');
+    return;
+  }
+
+  const data = await resp.json();
+  pendingUsers = Array.isArray(data.users) ? data.users : [];
+  updatePendingBadge();
+  renderPendingUsersList();
+}
+
+async function openAdminApprovalsModal() {
+  if (!isAdminUser()) return;
+  document.getElementById('adminApprovalsModal').classList.add('open');
+  await refreshPendingUsers();
+}
+
+async function approvePendingUser(userId) {
+  if (!isAdminUser()) return;
+  const token = await getAccessToken();
+  if (!token) {
+    showToast('Session expired. Please log in again.');
+    return;
+  }
+
+  const resp = await fetch('/api/admin-approve-user', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ userId })
+  });
+
+  if (!resp.ok) {
+    console.error('Approve failed:', await resp.text());
+    showToast('Could not approve user.');
+    return;
+  }
+
+  const data = await resp.json();
+
+  await refreshPendingUsers();
+  showToast(data.emailSent === false ? '✅ User approved (email failed to send)' : '✅ User approved');
+}
+
+async function rejectPendingUser(userId) {
+  if (!isAdminUser()) return;
+  const token = await getAccessToken();
+  if (!token) {
+    showToast('Session expired. Please log in again.');
+    return;
+  }
+
+  const resp = await fetch('/api/admin-reject-user', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ userId })
+  });
+
+  if (!resp.ok) {
+    console.error('Reject failed:', await resp.text());
+    showToast('Could not reject user.');
+    return;
+  }
+
+  await refreshPendingUsers();
+  showToast('🗑️ User rejected');
 }
 
 // ── FILTERS ─────────────────────────────────────────────────────────────────────
@@ -859,6 +1007,7 @@ async function initApp() {
     initSupabase();
     const hasSession = await requireAuthSession();
     if (!hasSession) return;
+    if (isAdminUser()) await refreshPendingUsers();
     await loadEventsFromSupabase();
     renderAll();
   } catch (error) {
