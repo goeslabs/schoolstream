@@ -17,6 +17,23 @@ function clearMessage(id) {
   el.style.display = 'none';
 }
 
+async function notifyAdminOfNewRegistration(email) {
+  try {
+    const resp = await fetch('/api/new-user-registered', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+
+    if (!resp.ok) {
+      const err = await resp.text();
+      console.error('Admin notification failed:', err);
+    }
+  } catch (error) {
+    console.error('Admin notification request failed:', error);
+  }
+}
+
 async function fetchUserProfile(userId) {
   const { data, error } = await supabaseClient
     .from('profiles')
@@ -128,6 +145,8 @@ async function handleRegister(event) {
     showMessage('registerMessage', error.message, 'error');
     return;
   }
+
+  await notifyAdminOfNewRegistration(email);
 
   showMessage(
     'registerMessage',

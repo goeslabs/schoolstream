@@ -6,6 +6,8 @@ A mobile-first school events calendar. School staff paste emails, AI extracts th
 
 ```
 schoolstream/
+├── api/
+│   └── new-user-registered.js # Sends admin approval emails via Resend
 ├── auth.html         # Login and registration page
 ├── onboarding.html   # Year-group onboarding page
 ├── index.html        # App shell and all HTML markup
@@ -69,6 +71,9 @@ The app now reads/writes events from Supabase.
 3. In Vercel Project Settings -> Environment Variables, add:
    - `SUPABASE_URL`
    - `SUPABASE_ANON_KEY`
+   - `RESEND_API_KEY`
+   - `ADMIN_NOTIFY_EMAIL` (optional, default: `info@goeslabs.com`)
+   - `RESEND_FROM_EMAIL` (optional, default: `SchoolStream <onboarding@resend.dev>`)
 4. Deploy. `vercel.json` generates `js/config.js` at build time from those environment variables.
 5. If env vars are missing, deploy still succeeds but falls back to template config, and the app shows a setup warning banner.
 
